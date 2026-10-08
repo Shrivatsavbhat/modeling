@@ -1,6 +1,6 @@
-# PulseGrid AI: demand forecasting V1
+# PulseGrid AI: outbreak-aware demand forecasting V2
 
-Standalone Python 3.12 LightGBM demand forecasts and a FastAPI service. Nothing connects to Supabase or changes the main backend. The target is **quantity_requested**, and series use canonical **medicine_id**. Stock, risk labels, quantity dispensed and outbreak flags are excluded from the model features.
+Standalone Python 3.12 LightGBM demand forecasts and a FastAPI service. Nothing connects to Supabase or changes the main backend. The target is **quantity_requested**, and series use canonical **medicine_id**. This version uses the historical `outbreak_flag` and a causal seven-day outbreak rate as demand features. Inventory, risk labels, and quantity dispensed remain reporting data until they are explicitly joined and validated.
 
 ## Windows PowerShell: run the demo
 
@@ -37,7 +37,14 @@ $result.predictions.Count
 
 For local Swagger, open `http://127.0.0.1:8000/docs`, expand POST `/predict`, click **Try it out**, enter the same JSON and execute. A 7-day request returns exactly 7 dates; change `horizon_days` to 14 for 14 dates. These local instructions are for your Windows machine, not a cloud web preview.
 
-GET `/health` checks service liveness. GET `/model/info` reports training dates, known IDs/pairs, feature order and synthetic evaluation metrics. Both model-dependent endpoints return 503 if the artifact is missing. Unknown pairs return 400; unsupported horizons or malformed requests return 422. The artifact is loaded once per service instance; restart Uvicorn after replacing it. Never load joblib artifacts from untrusted sources.
+GET `/health` checks service liveness. GET `/model/info` reports training dates, known IDs/pairs, feature order and synthetic evaluation metrics. POST `/predict` also returns the recent seven-day baseline, average predicted demand, percentage change, and a transparent risk label:
+
+- `normal`: predicted demand is not above the recent baseline
+- `elevated`: predicted demand is up to 10% above baseline
+- `high_surge`: predicted demand is 10-25% above baseline
+- `critical_surge`: predicted demand is at least 25% above baseline
+
+These are demand-surge signals, not a clinical outbreak diagnosis. `outbreak_flag` is an input scenario signal and should be populated from a validated surveillance workflow before production use. Both model-dependent endpoints return 503 if the artifact is missing. Unknown pairs return 400; unsupported horizons or malformed requests return 422. The artifact is loaded once per service instance; restart Uvicorn after replacing it. Never load joblib artifacts from untrusted sources.
 
 Linux/cloud equivalent (from `intelligence/`):
 

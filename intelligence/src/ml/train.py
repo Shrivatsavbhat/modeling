@@ -11,7 +11,7 @@ from .features import FEATURE_NAMES, build_features, category_mappings
 from .predict import DEFAULT_MODEL, recursive_forecast
 from .synthetic_data import DEFAULT_SYNTHETIC, SEED
 
-MODEL_VERSION = "lightgbm-v1"
+MODEL_VERSION = "lightgbm-outbreak-v2"
 PARAMETERS = dict(n_estimators=250, learning_rate=0.04, num_leaves=15,
     max_depth=5, min_child_samples=30, reg_lambda=2.0,
     random_state=SEED, n_jobs=2, verbosity=-1, deterministic=True, force_col_wise=True)
@@ -97,7 +97,9 @@ def train_model(data_path: str | Path = DEFAULT_SYNTHETIC,
     serving_rows = build_features(data, categories).dropna(subset=FEATURE_NAMES)
     serving_model = lgb.LGBMRegressor(**final_parameters)
     serving_model.fit(serving_rows[FEATURE_NAMES], serving_rows.quantity_requested)
-    history = data.groupby(KEYS, observed=True).tail(14)[["date", *KEYS, "quantity_requested"]].copy()
+    history = data.groupby(KEYS, observed=True).tail(14)[
+        ["date", *KEYS, "quantity_requested", "outbreak_flag"]
+    ].copy()
     artifact = dict(model=serving_model, model_version=MODEL_VERSION,
         feature_names=FEATURE_NAMES.copy(), categories=categories,
         training_date_range=date_range(data), history=history,

@@ -23,6 +23,6 @@ def trained(tmp_path_factory, synthetic):
     directory = tmp_path_factory.mktemp("training")
     data_path = directory / "demand.csv"
     synthetic.to_csv(data_path, index=False)
-    model_path = directory / "lightgbm_v1.joblib"
+    model_path = directory / "lightgbm_outbreak_v2.joblib"
     artifact = train_model(data_path, model_path, directory / "reports")
     return artifact, model_path, directory

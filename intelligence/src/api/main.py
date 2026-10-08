@@ -5,7 +5,8 @@ from pathlib import Path
 from typing import Literal
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
-from ..ml.predict import DEFAULT_MODEL, load_artifact, predict_demand
+import pandas as pd
+from ..ml.predict import DEFAULT_MODEL, load_artifact, predict_demand, predict_from_real_history
 
 
 class PredictionRequest(BaseModel):
@@ -13,6 +14,21 @@ class PredictionRequest(BaseModel):
     hospital_id: str = Field(min_length=1)
     medicine_id: str = Field(min_length=1)
     horizon_days: Literal[7, 14] = 7
+    outbreak_flag: int = Field(default=0, ge=0, le=1)
+
+
+class HistoryPoint(BaseModel):
+    date: date
+    quantity_requested: float = Field(ge=0)
+    outbreak_flag: int = Field(default=0, ge=0, le=1)
+
+
+class RealHistoryPredictionRequest(BaseModel):
+    hospital_id: str = Field(min_length=1)
+    medicine_id: str = Field(min_length=1)
+    horizon_days: Literal[7, 14] = 7
+    outbreak_flag: int = Field(default=0, ge=0, le=1)
+    history: list[HistoryPoint] = Field(min_length=28)
 
 
 class DailyPrediction(BaseModel):
@@ -25,6 +41,11 @@ class PredictionResponse(BaseModel):
     medicine_id: str
     model_version: str
     horizon_days: Literal[7, 14]
+    outbreak_flag: int
+    baseline_daily_demand: float = Field(ge=0, allow_inf_nan=False)
+    average_predicted_demand: float = Field(ge=0, allow_inf_nan=False)
+    surge_percent: float
+    risk_level: Literal["normal", "elevated", "high_surge", "critical_surge"]
     predictions: list[DailyPrediction]
 
 
@@ -73,7 +94,24 @@ def create_app(model_path: str | Path = DEFAULT_MODEL) -> FastAPI:
         saved = get_model()
         try:
             return predict_demand(request.hospital_id, request.medicine_id,
-                                  request.horizon_days, artifact=saved)
+                                  request.horizon_days, request.outbreak_flag, artifact=saved)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @service.post("/predict/real-history")
+    def predict_real_history(request: RealHistoryPredictionRequest) -> dict:
+        frame = pd.DataFrame([
+            {
+                "date": point.date,
+                "hospital_id": request.hospital_id,
+                "medicine_id": request.medicine_id,
+                "quantity_requested": point.quantity_requested,
+                "outbreak_flag": point.outbreak_flag,
+            }
+            for point in request.history
+        ])
+        try:
+            return predict_from_real_history(frame, request.horizon_days, request.outbreak_flag)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 

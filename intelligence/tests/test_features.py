@@ -56,7 +56,8 @@ def test_causal_features(synthetic):
     assert row.lag_7 == series.iloc[13].quantity_requested
     assert row.rolling_mean_7 == pytest.approx(series.iloc[13:20].quantity_requested.mean())
     assert row.rolling_mean_14 == pytest.approx(series.iloc[6:20].quantity_requested.mean())
-    assert "outbreak_flag" not in FEATURE_NAMES
+    assert "outbreak_flag" in FEATURE_NAMES
+    assert "outbreak_rate_7" in FEATURE_NAMES
     assert "quantity_dispensed" not in FEATURE_NAMES
 
 

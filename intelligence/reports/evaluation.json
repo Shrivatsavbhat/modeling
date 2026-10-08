@@ -27,9 +27,9 @@
   "number_of_hospitals": 4,
   "number_of_medicines": 5,
   "number_of_observations": 3600,
-  "model_version": "lightgbm-v1",
+  "model_version": "lightgbm-outbreak-v2",
   "model_hyperparameters": {
-    "n_estimators": 120,
+    "n_estimators": 250,
     "learning_rate": 0.04,
     "num_leaves": 15,
     "max_depth": 5,
@@ -55,16 +55,16 @@
     "force_col_wise": true
   },
   "random_seed": 42,
-  "best_iteration": 120,
+  "best_iteration": 250,
   "test_horizon_days": 14,
   "validation_method": "Chronological one-step validation for early stopping (past observed lags).",
   "test_method": "Fixed-origin recursive holdout; only predicted targets are appended.",
   "serving_refit": "Full dataset after evaluation; held-out results belong to the pre-test model.",
   "evaluation_observations": 280,
   "lightgbm_metrics": {
-    "MAE": 5.715917592470695,
-    "WAPE": 0.07075093611651981,
-    "RMSE": 9.320308122693694
+    "MAE": 5.7871410324954455,
+    "WAPE": 0.07163253123640533,
+    "RMSE": 9.65551773631089
   },
   "baseline_metrics": {
     "MAE": 6.896428571428571,
@@ -77,9 +77,9 @@
     "7": {
       "observations": 140,
       "lightgbm": {
-        "MAE": 6.784770247668942,
-        "WAPE": 0.08331443160017998,
-        "RMSE": 10.682693039667965
+        "MAE": 6.926618710710571,
+        "WAPE": 0.08505627747561442,
+        "RMSE": 11.319954601954958
       },
       "baseline": {
         "MAE": 7.671428571428572,
@@ -90,9 +90,9 @@
     "14": {
       "observations": 280,
       "lightgbm": {
-        "MAE": 5.715917592470695,
-        "WAPE": 0.07075093611651981,
-        "RMSE": 9.320308122693694
+        "MAE": 5.7871410324954455,
+        "WAPE": 0.07163253123640533,
+        "RMSE": 9.65551773631089
       },
       "baseline": {
         "MAE": 6.896428571428571,
