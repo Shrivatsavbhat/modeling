@@ -6,8 +6,7 @@ from typing import Literal
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 import pandas as pd
-from ..ml.predict import DEFAULT_MODEL, load_artifact, predict_demand, predict_from_real_history
-
+from ml.predict import DEFAULT_MODEL, load_artifact, predict_demand, predict_from_real_history
 
 class PredictionRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
